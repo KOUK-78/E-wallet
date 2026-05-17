@@ -4,5 +4,6 @@ const authenticate = require('../../middleware/authenticate');
 
 router.post('/send',    authenticate, ctrl.send);
 router.get('/history',  authenticate, ctrl.history);
+router.get('/analytics', authenticate, ctrl.analytics);
 
 module.exports = router;

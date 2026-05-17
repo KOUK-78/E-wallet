@@ -1,13 +1,19 @@
 const pool        = require('../../config/db');
 const fraudService = require('../fraud/fraud.service');
+const bcrypt       = require('bcryptjs');
 
 /**
  * Send money from one user to another.
  * Uses a DB transaction with SELECT ... FOR UPDATE to prevent double-spend.
  */
-async function sendMoney(senderId, { recipientEmail, recipientPhone, amount, note }) {
+async function sendMoney(senderId, { recipientEmail, recipientPhone, amount, note, tx_pin }) {
   if (!amount || isNaN(amount) || Number(amount) <= 0) {
     const err = new Error('Amount must be a positive number');
+    err.status = 400;
+    throw err;
+  }
+  if (!tx_pin) {
+    const err = new Error('Transaction PIN is required');
     err.status = 400;
     throw err;
   }
@@ -17,6 +23,21 @@ async function sendMoney(senderId, { recipientEmail, recipientPhone, amount, not
 
   try {
     await conn.beginTransaction();
+
+    // 0. Verify sender PIN and frozen status
+    const [senderRows] = await conn.query('SELECT tx_pin, is_frozen FROM users WHERE id = ?', [senderId]);
+    if (senderRows.length === 0) throw new Error('Sender not found');
+    if (senderRows[0].is_frozen) {
+      const err = new Error('Your account is frozen. Transactions are blocked.');
+      err.status = 403;
+      throw err;
+    }
+    const pinValid = await bcrypt.compare(tx_pin, senderRows[0].tx_pin);
+    if (!pinValid) {
+      const err = new Error('Invalid Transaction PIN');
+      err.status = 401;
+      throw err;
+    }
 
     // 1. Find recipient
     const [recipients] = await conn.query(
@@ -192,4 +213,20 @@ async function getHistory(userId, filters = {}) {
   };
 }
 
-module.exports = { sendMoney, getHistory };
+/**
+ * Fetch spending analytics for the user (last 30 days)
+ */
+async function getAnalytics(userId) {
+  // Group by date, sum amount for debits
+  const [rows] = await pool.query(
+    `SELECT DATE(created_at) as date, SUM(amount) as total_spent
+     FROM transactions
+     WHERE sender_id = ? AND type = 'debit' AND created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+     GROUP BY DATE(created_at)
+     ORDER BY DATE(created_at) ASC`,
+    [userId]
+  );
+  return rows;
+}
+
+module.exports = { sendMoney, getHistory, getAnalytics };

@@ -10,6 +10,7 @@ import DashboardPage from './pages/DashboardPage';
 import SendPage from './pages/SendPage';
 import TopUpPage from './pages/TopUpPage';
 import HistoryPage from './pages/HistoryPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +49,7 @@ function App() {
               <Route path="/send"      element={<SendPage />} />
               <Route path="/topup"     element={<TopUpPage />} />
               <Route path="/history"   element={<HistoryPage />} />
+              <Route path="/admin"     element={<AdminDashboardPage />} />
             </Route>
 
             {/* Fallback */}

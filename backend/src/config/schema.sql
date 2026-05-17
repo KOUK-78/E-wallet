@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
   email       VARCHAR(255)  NOT NULL UNIQUE,
   phone       VARCHAR(20)   DEFAULT NULL,
   password_hash VARCHAR(255) NOT NULL,
+  tx_pin        VARCHAR(255) NOT NULL,
+  role          ENUM('user', 'admin') NOT NULL DEFAULT 'user',
+  is_frozen     BOOLEAN       NOT NULL DEFAULT FALSE,
   created_at  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_email (email),
   INDEX idx_phone (phone)

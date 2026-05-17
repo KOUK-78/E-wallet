@@ -10,6 +10,12 @@ export function useTransactions(filters = {}) {
     staleTime: 5_000,
   })
 
+  const analyticsQuery = useQuery({
+    queryKey: ['transactions', 'analytics'],
+    queryFn: () => txApi.analytics().then(r => r.data),
+    staleTime: 60_000,
+  })
+
   const sendMutation = useMutation({
     mutationFn: (data) => txApi.send(data).then(r => r.data),
     onSuccess:  () => {
@@ -18,5 +24,5 @@ export function useTransactions(filters = {}) {
     },
   })
 
-  return { historyQuery, sendMutation }
+  return { historyQuery, analyticsQuery, sendMutation }
 }

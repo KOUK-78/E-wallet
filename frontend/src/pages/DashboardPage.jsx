@@ -7,45 +7,86 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import TransactionRow from '@/components/TransactionRow'
 import { SendHorizonal, PlusCircle, Loader2, TrendingUp } from 'lucide-react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const { balanceQuery } = useWallet()
-  const { historyQuery } = useTransactions({ page: 1, limit: 5 })
+  const { historyQuery, analyticsQuery } = useTransactions({ page: 1, limit: 5 })
 
   const balance = balanceQuery.data?.balance
   const recent  = historyQuery.data?.data || []
+  const analytics = analyticsQuery.data || []
+
+  // format dates for the chart (e.g. "2026-05-17" to "May 17")
+  const chartData = analytics.map(a => {
+    const d = new Date(a.date)
+    return {
+      date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      amount: parseFloat(a.total_spent)
+    }
+  })
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Good day, {user?.name?.split(' ')[0]} 👋</h1>
         <p className="text-muted-foreground text-sm mt-1">Here's your wallet overview</p>
       </div>
 
-      {/* Balance card */}
-      <Card className="bg-primary text-primary-foreground border-0">
-        <CardHeader className="pb-2">
-          <CardDescription className="text-primary-foreground/70">Wallet Balance</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {balanceQuery.isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : (
-            <p className="text-4xl font-bold tracking-tight">
-              ₹{parseFloat(balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </p>
-          )}
-          <div className="flex gap-3 mt-4">
-            <Button variant="secondary" size="sm" asChild className="bg-white/20 hover:bg-white/30 text-white border-0">
-              <Link to="/send"><SendHorizonal className="h-4 w-4 mr-1.5" />Send</Link>
-            </Button>
-            <Button variant="secondary" size="sm" asChild className="bg-white/20 hover:bg-white/30 text-white border-0">
-              <Link to="/topup"><PlusCircle className="h-4 w-4 mr-1.5" />Add Money</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Top Cards: Balance & Analytics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-primary text-primary-foreground border-0 flex flex-col justify-between">
+          <CardHeader className="pb-2">
+            <CardDescription className="text-primary-foreground/70">Wallet Balance</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {balanceQuery.isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <p className="text-4xl font-bold tracking-tight">
+                ₹{parseFloat(balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
+            )}
+            <div className="flex gap-3 mt-4">
+              <Button variant="secondary" size="sm" asChild className="bg-white/20 hover:bg-white/30 text-white border-0">
+                <Link to="/send"><SendHorizonal className="h-4 w-4 mr-1.5" />Send</Link>
+              </Button>
+              <Button variant="secondary" size="sm" asChild className="bg-white/20 hover:bg-white/30 text-white border-0">
+                <Link to="/topup"><PlusCircle className="h-4 w-4 mr-1.5" />Add Money</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Spending Analytics (30 Days)</CardTitle>
+            <CardDescription>Your daily spending trend</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analyticsQuery.isLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+            ) : chartData.length === 0 ? (
+              <div className="flex items-center justify-center h-[120px] text-sm text-muted-foreground">
+                No spending data yet.
+              </div>
+            ) : (
+              <div className="h-[120px] w-full mt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData}>
+                    <Tooltip 
+                      formatter={(value) => [`₹${value}`, 'Spent']}
+                      labelStyle={{ color: '#000' }}
+                    />
+                    <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Recent transactions */}
       <Card>

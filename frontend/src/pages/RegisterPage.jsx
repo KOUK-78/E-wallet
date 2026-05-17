@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react'
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate     = useNavigate()
-  const [form, setForm]     = useState({ name: '', email: '', phone: '', password: '' })
+  const [form, setForm]     = useState({ name: '', email: '', phone: '', password: '', tx_pin: '' })
   const [error, setError]   = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -68,6 +68,11 @@ export default function RegisterPage() {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" name="password" type="password" placeholder="Min 8 characters"
                   value={form.password} onChange={handleChange} required minLength={8} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="tx_pin">Transaction PIN (4 digits)</Label>
+                <Input id="tx_pin" name="tx_pin" type="password" placeholder="1234"
+                  value={form.tx_pin} onChange={handleChange} required maxLength={4} pattern="\d{4}" />
               </div>
             </CardContent>
 

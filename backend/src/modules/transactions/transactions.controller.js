@@ -18,4 +18,13 @@ async function history(req, res, next) {
   }
 }
 
-module.exports = { send, history };
+async function analytics(req, res, next) {
+  try {
+    const data = await txService.getAnalytics(req.user.id);
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { send, history, analytics };

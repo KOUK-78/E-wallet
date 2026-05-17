@@ -2,15 +2,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { LayoutDashboard, SendHorizonal, History, PlusCircle, LogOut, Wallet } from 'lucide-react'
+import { LayoutDashboard, SendHorizonal, History, PlusCircle, LogOut, Wallet, ShieldAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const navItems = [
-  { to: '/',        label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/send',    label: 'Send Money', icon: SendHorizonal },
-  { to: '/topup',   label: 'Add Money',  icon: PlusCircle },
-  { to: '/history', label: 'History',    icon: History },
-]
 
 export default function AppLayout({ children }) {
   const { user, logout } = useAuth()
@@ -18,10 +11,20 @@ export default function AppLayout({ children }) {
 
   const handleLogout = () => { logout(); navigate('/login') }
 
+  const navItems = [
+    { to: '/',        label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/send',    label: 'Send Money', icon: SendHorizonal },
+    { to: '/topup',   label: 'Add Money',  icon: PlusCircle },
+    { to: '/history', label: 'History',    icon: History },
+  ]
+  if (user?.role === 'admin') {
+    navItems.push({ to: '/admin', label: 'Admin Panel', icon: ShieldAlert })
+  }
+
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 relative">
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white border-r flex-col">
+      <aside className="hidden md:flex w-64 bg-white border-r flex-col sticky top-0 h-screen shrink-0">
         <div className="p-6">
           <div className="flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />

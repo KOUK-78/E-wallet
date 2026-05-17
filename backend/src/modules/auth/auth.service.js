@@ -16,9 +16,9 @@ function signToken(userId) {
  * Register a new user.
  * Creates user row + wallet row in one transaction.
  */
-async function register({ name, email, password, phone }) {
-  if (!name || !email || !password) {
-    const err = new Error('name, email and password are required');
+async function register({ name, email, password, phone, tx_pin }) {
+  if (!name || !email || !password || !tx_pin) {
+    const err = new Error('name, email, password, and 4-digit PIN are required');
     err.status = 400;
     throw err;
   }
@@ -38,10 +38,11 @@ async function register({ name, email, password, phone }) {
     }
 
     const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+    const pin_hash = await bcrypt.hash(tx_pin, SALT_ROUNDS);
 
     const [result] = await conn.query(
-      'INSERT INTO users (name, email, phone, password_hash) VALUES (?, ?, ?, ?)',
-      [name, email, phone || null, password_hash]
+      'INSERT INTO users (name, email, phone, password_hash, tx_pin) VALUES (?, ?, ?, ?, ?)',
+      [name, email, phone || null, password_hash, pin_hash]
     );
     const userId = result.insertId;
 
@@ -55,7 +56,7 @@ async function register({ name, email, password, phone }) {
     const token = signToken(userId);
     return {
       token,
-      user: { id: userId, name, email, phone: phone || null },
+      user: { id: userId, name, email, phone: phone || null, role: 'user', is_frozen: 0 },
     };
   } catch (err) {
     await conn.rollback();
@@ -70,7 +71,7 @@ async function register({ name, email, password, phone }) {
  */
 async function login({ email, password }) {
   const [rows] = await pool.query(
-    'SELECT id, name, email, phone, password_hash FROM users WHERE email = ?',
+    'SELECT id, name, email, phone, password_hash, role, is_frozen FROM users WHERE email = ?',
     [email]
   );
   if (rows.length === 0) {
@@ -87,10 +88,16 @@ async function login({ email, password }) {
     throw err;
   }
 
+  if (user.is_frozen) {
+    const err = new Error('Your account has been frozen by an administrator');
+    err.status = 403;
+    throw err;
+  }
+
   const token = signToken(user.id);
   return {
     token,
-    user: { id: user.id, name: user.name, email: user.email, phone: user.phone },
+    user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role, is_frozen: user.is_frozen },
   };
 }
 

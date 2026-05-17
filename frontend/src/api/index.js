@@ -14,11 +14,19 @@ export const walletApi = {
 
 // ── Transactions ──────────────────────────────────────────────────────────────
 export const txApi = {
-  send:    (data)    => client.post('/transactions/send', data),
-  history: (params)  => client.get('/transactions/history', { params }),
+  send:      (data)    => client.post('/transactions/send', data),
+  history:   (params)  => client.get('/transactions/history', { params }),
+  analytics: ()        => client.get('/transactions/analytics'),
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 export const usersApi = {
   search: (q) => client.get('/users/search', { params: { q } }),
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+export const adminApi = {
+  stats:        ()   => client.get('/admin/stats'),
+  users:        ()   => client.get('/admin/users'),
+  toggleFreeze: (id) => client.post(`/admin/users/${id}/freeze`),
 }

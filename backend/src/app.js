@@ -7,6 +7,7 @@ const authRoutes        = require('./modules/auth/auth.routes');
 const walletRoutes      = require('./modules/wallet/wallet.routes');
 const transactionRoutes = require('./modules/transactions/transactions.routes');
 const userRoutes        = require('./modules/users/users.routes');
+const adminRoutes       = require('./modules/admin/admin.routes');
 const errorHandler      = require('./middleware/errorHandler');
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/auth',         authRoutes);
 app.use('/api/wallet',       walletRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/users',        userRoutes);
+app.use('/api/admin',        adminRoutes);
 
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));

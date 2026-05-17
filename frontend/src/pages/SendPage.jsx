@@ -19,6 +19,7 @@ export default function SendPage() {
   const [recipient, setRecipient] = useState(null)
   const [amount, setAmount]       = useState('')
   const [note, setNote]           = useState('')
+  const [tx_pin, setTxPin]        = useState('')
   const [success, setSuccess]     = useState(null)
   const [error, setError]         = useState('')
 
@@ -54,10 +55,12 @@ export default function SendPage() {
         recipientEmail: recipient.email,
         amount: parseFloat(amount),
         note,
+        tx_pin,
       })
       setSuccess(res)
       setAmount('')
       setNote('')
+      setTxPin('')
       setRecipient(null)
       setQuery('')
     } catch (err) {
@@ -189,11 +192,25 @@ export default function SendPage() {
                 maxLength={255}
               />
             </div>
+            
+            <div className="space-y-1">
+              <Label htmlFor="tx_pin">Transaction PIN</Label>
+              <Input
+                id="tx_pin"
+                type="password"
+                placeholder="Enter 4-digit PIN"
+                value={tx_pin}
+                onChange={e => setTxPin(e.target.value)}
+                required
+                maxLength={4}
+                pattern="\d{4}"
+              />
+            </div>
 
             <Button
               type="submit"
               className="w-full"
-              disabled={!recipient || !amount || parseFloat(amount) <= 0 || sendMutation.isPending}
+              disabled={!recipient || !amount || parseFloat(amount) <= 0 || !tx_pin || sendMutation.isPending}
             >
               {sendMutation.isPending
                 ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>
