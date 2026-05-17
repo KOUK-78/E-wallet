@@ -28,10 +28,13 @@ A full-stack P2P digital wallet application built with **React + Vite** (fronten
 | Feature | Details |
 |---|---|
 | 🔐 Auth | JWT-based register & login; wallet auto-created on register |
+| 🔑 Transaction PIN | 4-digit PIN required for sending money to enhance security |
 | 💰 Wallet | View balance, top-up (simulated deposit) |
 | 💸 Send Money | Search users by name / email / phone; atomic transfer with MySQL transactions |
 | 📜 History | Paginated transaction history with filters (type, amount range, date) |
+| 📊 Analytics | Visualize 30-day spending trends with Recharts on the dashboard |
 | 🚨 Fraud Detection | Auto-flags transactions > ₹50,000 or if sender sends > 5 times in 60 seconds |
+| 🛡️ Admin Dashboard | View platform stats, manage users, and freeze suspicious accounts (`role='admin'`) |
 | 🔒 Deadlock-safe | Wallet rows locked in consistent ID order (`SELECT … FOR UPDATE`) |
 | ⚡ Rate Limiting | 60 requests/min per IP via `express-rate-limit` |
 
@@ -131,6 +134,7 @@ e-wallet/
 | `axios` | HTTP client |
 | `tailwindcss` | Utility-first CSS |
 | `@radix-ui/*` | Accessible UI primitives |
+| `recharts` | Data visualization and charts |
 | `lucide-react` | Icons |
 | `date-fns` | Date formatting |
 | `clsx` + `tailwind-merge` | Conditional class merging |
@@ -230,8 +234,8 @@ All endpoints are prefixed with `/api`. Protected routes require `Authorization:
 
 | Method | Endpoint | Auth | Body | Response |
 |---|---|---|---|---|
-| POST | `/api/auth/register` | ✅ | `{ name, email, password, phone? }` | `{ token, user }` |
-| POST | `/api/auth/login` | ✅ | `{ email, password }` | `{ token, user }` |
+| POST | `/api/auth/register` | ❌ | `{ name, email, password, tx_pin, phone? }` | `{ token, user }` |
+| POST | `/api/auth/login` | ❌ | `{ email, password }` | `{ token, user }` |
 
 ### Wallet
 
@@ -244,8 +248,17 @@ All endpoints are prefixed with `/api`. Protected routes require `Authorization:
 
 | Method | Endpoint | Auth | Body / Query | Response |
 |---|---|---|---|---|
-| POST | `/api/transactions/send` | ✅ | `{ recipientEmail, amount, note? }` | `{ message, transactionId, amount, flagged }` |
+| POST | `/api/transactions/send` | ✅ | `{ recipientEmail, amount, tx_pin, note? }` | `{ message, transactionId, amount, flagged }` |
 | GET | `/api/transactions/history` | ✅ | `?type=debit\|credit\|topup&page=1&limit=10&minAmount=&maxAmount=&from=&to=` | `{ data[], pagination }` |
+| GET | `/api/transactions/analytics` | ✅ | — | `[ { date, total_spent } ]` |
+
+### Admin
+
+| Method | Endpoint | Auth | Body | Response |
+|---|---|---|---|---|
+| GET | `/api/admin/stats` | ✅ (Admin) | — | `{ total_users, total_volume, fraud_flags }` |
+| GET | `/api/admin/users` | ✅ (Admin) | — | `[ { id, name, email, balance, is_frozen... } ]` |
+| POST | `/api/admin/users/:id/freeze` | ✅ (Admin) | — | `{ id, is_frozen }` |
 
 ### Users
 
