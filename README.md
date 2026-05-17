@@ -230,8 +230,8 @@ All endpoints are prefixed with `/api`. Protected routes require `Authorization:
 
 | Method | Endpoint | Auth | Body | Response |
 |---|---|---|---|---|
-| POST | `/api/auth/register` | ❌ | `{ name, email, password, phone? }` | `{ token, user }` |
-| POST | `/api/auth/login` | ❌ | `{ email, password }` | `{ token, user }` |
+| POST | `/api/auth/register` | ✅ | `{ name, email, password, phone? }` | `{ token, user }` |
+| POST | `/api/auth/login` | ✅ | `{ email, password }` | `{ token, user }` |
 
 ### Wallet
 
